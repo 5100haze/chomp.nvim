@@ -1,3 +1,5 @@
+local db = require 'chomp.db'
+
 local M = {}
 
 ---@class chomp.Window
