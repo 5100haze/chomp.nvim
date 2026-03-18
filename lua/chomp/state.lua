@@ -9,17 +9,17 @@ M.set = function(s)
   return state
 end
 
-M.get = function() return state end
-
-M.dump = function() db.save(state) end
-
 M.load = function()
   state = db.load() or {}
   return state
 end
 
+M.dump = function() db.save(state) end
+
 M.mark_read = function(feed, id)
   if state.feeds and state.feeds[feed] then table.insert(state.feeds[feed].read, id) end
 end
+
+M.current = state
 
 return M
