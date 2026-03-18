@@ -1,6 +1,6 @@
 local M = {}
 
-local spawn_float = function(opts)
+local create_float_config = function(opts)
   opts = opts or {}
   local width = opts.width or math.floor(vim.o.columns * 0.4)
   local height = opts.height or math.floor(vim.o.lines * 0.8)
@@ -8,7 +8,8 @@ local spawn_float = function(opts)
   local col = math.floor((vim.o.columns - width) / 2)
   local row = math.floor((vim.o.lines - height) / 2)
 
-  local win_opts = {
+  ---@type vim.api.keyset.win_config
+  local win_config = {
     relative = 'editor',
     width = width,
     height = height,
@@ -19,10 +20,7 @@ local spawn_float = function(opts)
     zindex = 45,
   }
 
-  local buf = vim.api.nvim_create_buf(false, true)
-  local win = vim.api.nvim_open_win(buf, true, win_opts)
-
-  local wconfig = {
+  local win_opts = {
     number = false,
     relativenumber = false,
     wrap = false,
@@ -33,7 +31,7 @@ local spawn_float = function(opts)
     cursorline = true,
   }
 
-  local bconfig = {
+  local buf_opts = {
     modifiable = false,
     swapfile = false,
     textwidth = 0,
@@ -43,11 +41,22 @@ local spawn_float = function(opts)
     filetype = 'chomp',
   }
 
-  for key, value in pairs(wconfig) do
+  return {
+    win_config = win_config,
+    win_opts = win_opts,
+    buf_opts = buf_opts,
+  }
+end
+
+local spawn_float = function(config)
+  local buf = vim.api.nvim_create_buf(false, true)
+  local win = vim.api.nvim_open_win(buf, true, config.win_config)
+
+  for key, value in pairs(config.win_opts) do
     vim.api.nvim_set_option_value(key, value, { win = win, scope = 'local' })
   end
 
-  for key, value in pairs(bconfig) do
+  for key, value in pairs(config.buf_opts) do
     vim.api.nvim_set_option_value(key, value, { buf = buf, scope = 'local' })
   end
 
@@ -55,7 +64,8 @@ local spawn_float = function(opts)
 end
 
 M.open = function()
-  local float = spawn_float {}
+  local float_config = create_float_config {}
+  local float = spawn_float(float_config)
   vim.keymap.set('n', 'q', function() vim.api.nvim_win_close(float.win, true) end, { buffer = float.buf })
   --local namespace = vim.api.nvim_create_namespace("ns")
 end
