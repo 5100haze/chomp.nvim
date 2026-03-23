@@ -2,7 +2,7 @@ local config = require 'chomp.config'
 
 local M = {}
 
-local path = config.current.data_dir .. '/feeds.lua'
+local path = config.current.data_dir .. '/chomp' .. '/db.lua'
 
 M.save = function(data)
   local tmp_path = path .. '.tmp'
