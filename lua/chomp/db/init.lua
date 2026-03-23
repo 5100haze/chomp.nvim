@@ -24,4 +24,6 @@ M.load = function()
   end
 end
 
+M.cache = require 'chomp.db.cache'
+
 return M
