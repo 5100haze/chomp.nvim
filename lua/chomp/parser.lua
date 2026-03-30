@@ -11,8 +11,8 @@ end
 
 M.new = function(xml)
   local doc = slaxdom:parse(xml)
-  local type, version = feed_type(doc)
-  return setmetatable({ doc = doc }, providers[type][version])
+  local kind, version = feed_type(doc)
+  if kind and version then return providers[kind][version].new(doc) end
 end
 
 return M
