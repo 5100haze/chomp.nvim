@@ -32,8 +32,8 @@ local new_feed = function(_url)
   local _parser = parser.new(db.cache.save_feed(data.xml))
 
   return {
-    title = _parser:title(),
-    last_updated = _parser:last_updated(),
+    title = _parser:get_title(),
+    last_updated = _parser:get_updated(),
     etag = data.etag,
     read = {},
     posts = _parser:posts(),
