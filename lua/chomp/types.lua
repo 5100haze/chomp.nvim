@@ -1,0 +1,7 @@
+---@class Post
+---@field title string
+---@field url string
+---@field guid string
+---@field summary string?
+---@field published_at string?
+---@field updated_at string?
