@@ -1,11 +1,8 @@
-local util = require 'chomp.util'
---assert curl
+local url = require 'chomp.util.url'
 
 local M = {}
 
--- callbacks may or may not get called !!
-
-M.head = function(url, callback)
+M.head = function(_url, callback)
   local parse_header = function(line)
     local sep = string.find(line, ':', 1, true)
     if not sep then return nil end

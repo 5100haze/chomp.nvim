@@ -1,5 +1,7 @@
 local db = require 'chomp.db'
-local util = require 'chomp.util'
+local http = require 'chomp.util.http'
+local url = require 'chomp.util.url'
+local parser = require 'chomp.parser'
 
 local M = {}
 
@@ -37,7 +39,7 @@ end
 M.sync_feeds = function(urls)
   local feeds_tmp = {}
   for u in urls do
-    local normalized = util.url.normalize(u)
+    local normalized = url.normalize(u)
     feeds_tmp = state.feeds[normalized] or new_feed(normalized)
   end
   state.feeds = feeds_tmp
@@ -45,7 +47,7 @@ end
 
 M.get_post = function(id) end
 
-M.is_updated = function(url) end
+M.is_updated = function(_url) end
 
 M.current = state
 
