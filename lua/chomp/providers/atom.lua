@@ -1,4 +1,5 @@
 local xml = require 'chomp.util.xml'
+local url = require 'chomp.util.url'
 
 local Base = {}
 Base.__index = Base
@@ -10,16 +11,6 @@ Base.__index = Base
 ---@field _entries_from integer
 local Atom10 = setmetatable({}, Base)
 Atom10.__index = Atom10
-
----@type table<string, string> atom name => post field name
-local POST_FIELDS = {
-  title = 'title',
-  link = 'url',
-  id = 'guid',
-  summary = 'summary',
-  published = 'published_at',
-  updated = 'updated_at',
-}
 
 local find_feed_el = function(doc)
   for _, k in ipairs(doc.kids) do
@@ -58,18 +49,33 @@ Atom10.get_updated = function(self) return self._updated end
 
 ---@return fun(): Post?
 Atom10.posts = function(self)
-  local want = vim.tbl_keys(POST_FIELDS)
   local i = self._entries_from - 1
   local els = self._els
 
   return function()
+    local ret = {}
     i = i + 1
     while els[i] and els[i].name ~= 'entry' do
       i = i + 1
     end
     if not els[i] then return nil end
-    local raw = xml.extract(want, els[i].el)
-    return xml.map_fields(raw, POST_FIELDS)
+    for _, v in ipairs(els[i].el) do
+      if v.name == 'title' and v.kids[1] then
+        ret.title = v.kids[1].value
+      elseif v.name == 'link' and v.attr.href then
+        ret.url = url.normalize(v.attr.href)
+      elseif v.name == 'id' and v.kids[1] then
+        ret.guid = v.kids[1].value
+      elseif v.name == 'updated' and v.kids[1] then
+        ret.updated_at = v.kids[1].value -- convert to timestamp or some shit
+      elseif v.name == 'published' and v.kids[1] then
+        ret.published_at = v.kids[1].value -- same
+      elseif v.name == 'summary' and v.kids[1] then
+        ret.summary = v.kids[1].value -- respect type attr and shit
+      end
+    end
+
+    return ret
   end
 end
 
