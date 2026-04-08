@@ -12,7 +12,8 @@ Base.__index = Base
 local Atom10 = setmetatable({}, Base)
 Atom10.__index = Atom10
 
-local find_feed_el = function(doc)
+---@protected
+Atom10.find_feed_el = function(doc)
   for _, k in ipairs(doc.kids) do
     if k.name == 'feed' then return k end
   end
@@ -23,7 +24,7 @@ end
 Atom10.new = function(doc)
   local self = setmetatable({ _doc = doc }, Atom10)
 
-  local feedel = find_feed_el(doc)
+  local feedel = self.find_feed_el(doc)
   if not feedel then error 'no <feed> element' end
 
   local channel_els = feedel.el
