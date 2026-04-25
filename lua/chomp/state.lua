@@ -23,21 +23,24 @@ M.mark_read = function(feed, id)
   if state.feeds and state.feeds[feed] then table.insert(state.feeds[feed].read, id) end
 end
 
-local new_feed = function(_url)
-  local data
+local new_feed = function(_url, callback)
   http.get(_url, function(res, err)
-    if res then data = res end
-  end)
-  if not data then return nil end
-  local _parser = parser.new(db.cache.save_feed(data.xml))
+    if err then
+      callback(nil, err)
+      return
+    end
 
-  return {
-    title = _parser:get_title(),
-    last_updated = _parser:get_updated(),
-    etag = data.etag,
-    read = {},
-    posts = _parser:posts(),
-  }
+    local xml = db.cache.save_feed(res.xml)
+    callback({
+      parser = parser.new(xml),
+      read = {},
+      fresh = true,
+      control = {
+        etag = res.headers.etag,
+        modified = res.headers['last-modified'],
+      },
+    }, nil)
+  end)
 end
 
 M.sync_feeds = function(urls)
