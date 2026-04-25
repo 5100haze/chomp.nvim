@@ -45,11 +45,61 @@ end
 
 M.sync_feeds = function(urls)
   local feeds_tmp = {}
-  for u in urls do
-    local normalized = url.normalize(u)
-    feeds_tmp = state.feeds[normalized] or new_feed(normalized)
+  local pending = 0
+
+  local on_done = function()
+    if pending == 0 then state.feeds = feeds_tmp end
   end
-  state.feeds = feeds_tmp
+
+  for _, u in ipairs(urls) do
+    local normalized = url.normalize(u)
+    if state.feeds[normalized] then
+      feeds_tmp[normalized] = state.feeds[normalized]
+    else
+      pending = pending + 1
+      new_feed(normalized, function(feed, err)
+        pending = pending - 1
+        if err then
+          vim.notify(err, vim.log.levels.WARN)
+        else
+          feeds_tmp[normalized] = feed
+        end
+        on_done()
+      end)
+    end
+  end
+
+  on_done()
+end
+
+M.refresh = function(urls)
+  if not urls then urls = vim.tbl_keys(state.feeds) end
+
+  for _, u in ipairs(urls) do
+    if not state.feeds[u] then
+      vim.notify('improper refresh: url not tracked', vim.log.levels.ERROR)
+      return
+    end
+
+    local read = state.feeds[u].read
+    http.head(u, function(res, err)
+      if not res then
+        vim.notify(err, vim.log.levels.WARN)
+        return
+      end
+
+      if (res.etag ~= state.feeds[u].control.etag) or (res['last-modified'] ~= state.feeds[u].control.modified) then
+        new_feed(u, function(feed, err)
+          if err then
+            vim.notify(err, vim.log.levels.WARN)
+            return
+          end
+          feed.read = read
+          state.feeds[u] = feed
+        end)
+      end
+    end)
+  end
 end
 
 M.get_post = function(id) end
